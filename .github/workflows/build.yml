@@ -6,8 +6,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install toolchain
-        run: sudo apt-get update && sudo apt-get install -y gcc-i686-linux-gnu binutils-i686-linux-gnu nasm grub-pc-bin grub-common xorriso qemu-system-x86
+        run: sudo apt-get update && sudo apt-get install -y gcc-i686-linux-gnu binutils-i686-linux-gnu nasm grub-pc-bin grub-common xorriso qemu-system-x86 dosfstools mtools
       - name: Build
         run: make
       - name: Validate Multiboot2
         run: grub-file --is-x86-multiboot2 build/kernel.elf
+      - name: Run QEMU regression
+        run: make test
+      - name: Upload ISO
+        uses: actions/upload-artifact@v4
+        with:
+          name: ceblar-20-iso
+          path: build/ceblar-20.iso

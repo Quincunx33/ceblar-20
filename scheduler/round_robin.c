@@ -5,7 +5,7 @@
 #include "kernel.h"
 #include "vfs.h"
 static int rr_init(void);static void rr_tick(void);static pcb_t*rr_current(void);
-static scheduler_t rr={.name="round-robin",.init=rr_init,.tick=rr_tick,.current=rr_current};static pcb_t idle={.pid=1,.state=PROCESS_RUNNING,.name="idle"};static pcb_t*current=&idle;static pcb_t*ready_head;static uint32_t quantum_ticks=1;
+static scheduler_t rr={.name="round-robin",.init=rr_init,.tick=rr_tick,.current=rr_current};static pcb_t idle={.pid=0,.state=PROCESS_RUNNING,.name="idle"};static pcb_t*current=&idle;static pcb_t*ready_head;static uint32_t quantum_ticks=1;
 static void enqueue(pcb_t*p){if(!p||p->state==PROCESS_ZOMBIE||!p->cpu_state.esp)return;p->next=0;if(!ready_head){ready_head=p;return;}pcb_t*q=ready_head;while(q->next)q=q->next;q->next=p;}
 static pcb_t*next_ready(void){pcb_t*p;while((p=ready_head)!=0){ready_head=p->next;p->next=0;if(p->state==PROCESS_READY)return p;}return &idle;}
 static void activate(pcb_t*p){p->state=PROCESS_RUNNING;if(p->address_space)vmm_switch_address_space(p->address_space);else vmm_switch_address_space(0);tss_set_kernel_stack((uint32_t)&p->kernel_stack[4096]);current=p;vfs_set_process(p->pid);}

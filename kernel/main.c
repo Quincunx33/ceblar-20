@@ -10,6 +10,8 @@
 #include "ata.h"
 #include "fat32.h"
 #include "net.h"
+#include "pci.h"
+#include "acpi.h"
 extern void timer_irq(void *registers); extern void keyboard_irq(void *registers);
 extern kernel_module_t module_example_init; extern const uint8_t user_image[]; extern const uint32_t user_image_size;
 static void banner(void) { vga_write("ceblar-20 modular kernel\n"); vga_write("status: booted in 32-bit protected mode\n"); }
@@ -18,8 +20,8 @@ static void run_preemption_test(void){__asm__ volatile("cli");pcb_t*a=process_cr
 void kmain(uint32_t magic, uint32_t mbi_addr) {
     (void)mbi_addr; vga_init(); serial_init(); banner();
     if (magic != 0x36d76289) { panic("invalid Multiboot2 magic"); }
-    gdt_init(); tss_init(0); idt_init(); pmm_init(mbi_addr); vmm_init(); if(vmm_clone_selftest()!=0)panic("address-space clone self-test failed"); serial_write("vmm: clone self-test passed\n"); if(vmm_cow_selftest()!=0)panic("COW self-test failed"); serial_write("vmm: COW self-test passed\n"); heap_init();
-    pit_init(100); keyboard_init(); register_irq_handler(0,(irq_handler_t)timer_irq); register_irq_handler(1,(irq_handler_t)keyboard_irq); pic_unmask(0); pic_unmask(1); ata_init(); fat32_mount(0); storage_smoke(); vfs_init(); net_init(); syscall_init(); run_preemption_test();
+    gdt_init(); tss_init(0); idt_init(); acpi_init(); pmm_init(mbi_addr); vmm_init(); if(vmm_clone_selftest()!=0)panic("address-space clone self-test failed"); serial_write("vmm: clone self-test passed\n"); if(vmm_cow_selftest()!=0)panic("COW self-test failed"); serial_write("vmm: COW self-test passed\n"); heap_init();
+    pit_init(100); pci_init(); keyboard_init(); register_irq_handler(0,(irq_handler_t)timer_irq); register_irq_handler(1,(irq_handler_t)keyboard_irq); pic_unmask(0); pic_unmask(1); ata_init(); fat32_mount(0); storage_smoke(); vfs_init(); net_init(); syscall_init(); run_preemption_test();
     module_register(&module_example_init); module_load_all(); vga_write("subsystems: memory, interrupts, drivers, modules, scheduler, syscall, vfs\n");
     pcb_t *user=process_create_user("init",0); uint32_t entry=0; if(!user||elf32_load(user_image,user_image_size,user->address_space,&entry)!=0)panic("embedded ELF load failed"); user->entry_point=entry; user->cpu_state.eip=entry; disk_exec_smoke(); serial_write("userspace: launching ring3 init\n"); process_enter_user(user);
 }
