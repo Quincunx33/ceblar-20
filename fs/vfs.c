@@ -1,7 +1,10 @@
+#include <stdint.h>
 #include "vfs.h"
+#include "ata.h"
 #include "drivers.h"
-static vfs_file_t files[8]; void vfs_init(void){for(int i=0;i<8;i++)files[i].name=0;}
-int vfs_open(const char*n,uint32_t f){for(int i=0;i<8;i++)if(!files[i].name){files[i].name=n;files[i].flags=f;files[i].position=0;return i;}return -1;}
-int vfs_close(int fd){if(fd<0||fd>=8||!files[fd].name)return -1;files[fd].name=0;return 0;}
-ssize_t vfs_read(int fd,void*b,usize_t n){if(fd==0&&b&&n){int c=serial_read();if(c<0)return 0;((char*)b)[0]=(char)c;return 1;}return -1;}
-ssize_t vfs_write(int fd,const void*b,usize_t n){if(!b)return -1;if(fd==1){vga_write((const char*)b);return (ssize_t)n;}if(fd==2){serial_write_n((const char*)b,n);return (ssize_t)n;}if(fd<0||fd>=8||!files[fd].name)return -1;files[fd].position+=n;return (ssize_t)n;}
+static vfs_file_t files[8]; static uint8_t sector[512];
+void vfs_init(void){uint32_t i;for(i=0;i<8;i++){files[i].name=0;files[i].kind=0;files[i].position=0;}if(ata_present()){files[VFS_FD_RAW_HDA].name="hda";files[VFS_FD_RAW_HDA].kind=1;serial_write("vfs: fd3=hda raw device\n");}}
+int vfs_open(const char*n,uint32_t f){uint32_t i;if(!n)return-1;if(n[0]=='h'&&n[1]=='d'&&n[2]=='a'&&n[3]=='/'&&fat32_is_mounted()){for(i=VFS_FD_FIRST_FILE;i<8u;i++)if(!files[i].name){files[i].name="fat-file";files[i].kind=2;files[i].flags=f;files[i].position=0;if(fat32_open(n+4,&files[i].fat)!=0){files[i].name=0;return-1;}return(int)i;}}if(n[0]=='h'&&n[1]=='d'&&n[2]=='a'&&n[3]==0)return VFS_FD_RAW_HDA;for(i=VFS_FD_FIRST_FILE;i<8u;i++)if(!files[i].name){files[i].name=n;files[i].flags=f;files[i].position=0;files[i].kind=0;return(int)i;}return-1;}
+int vfs_close(int fd){if(fd<VFS_FD_FIRST_FILE||fd>=8||!files[fd].name)return-1;files[fd].name=0;files[fd].kind=0;return 0;}
+ssize_t vfs_read(int fd,void*b,usize_t n){uint8_t*out=(uint8_t*)b;uint32_t done=0;if(!b)return-1;if(fd==0&&n){int c=serial_read();if(c<0)return 0;out[0]=(uint8_t)c;return 1;}if(fd==VFS_FD_RAW_HDA&&files[fd].name){while(done<n){uint32_t lba=files[fd].position/512u,off=files[fd].position%512u,take=512u-off;if(take>n-done)take=n-done;if(ata_read_sector(lba,sector)!=0)return done?(ssize_t)done:-1;for(uint32_t i=0;i<take;i++)out[done+i]=sector[off+i];done+=take;files[fd].position+=take;}return(ssize_t)done;}if(fd>=VFS_FD_FIRST_FILE&&fd<8&&files[fd].kind==2)return fat32_read_file(&files[fd].fat,b,n);return-1;}
+ssize_t vfs_write(int fd,const void*b,usize_t n){const uint8_t*in=(const uint8_t*)b;uint32_t done=0;if(!b)return-1;if(fd==1){for(uint32_t i=0;i<n;i++)vga_putc((char)in[i]);return(ssize_t)n;}if(fd==2){serial_write_n((const char*)b,n);return(ssize_t)n;}if(fd==VFS_FD_RAW_HDA&&files[fd].name){while(done<n){uint32_t lba=files[fd].position/512u,off=files[fd].position%512u,take=512u-off;if(take>n-done)take=n-done;if(off||take<512u){if(ata_read_sector(lba,sector)!=0)return done?(ssize_t)done:-1;}for(uint32_t i=0;i<take;i++)sector[off+i]=in[done+i];if(ata_write_sector(lba,sector)!=0)return done?(ssize_t)done:-1;done+=take;files[fd].position+=take;}return(ssize_t)done;}return-1;}

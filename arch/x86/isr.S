@@ -294,6 +294,7 @@ isr_common:
     push esp
     call interrupt_dispatch
     add esp, 4
+    mov esp,eax
     popa
     add esp, 8
     iretd

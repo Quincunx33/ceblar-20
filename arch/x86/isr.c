@@ -4,6 +4,7 @@
 #include "isr.h"
 #include "mm.h"
 #include "syscall.h"
+#include "scheduler.h"
 
 typedef struct idt_entry { uint16_t base_low; uint16_t selector; uint8_t zero; uint8_t flags; uint16_t base_high; } __attribute__((packed)) idt_entry_t;
 typedef struct idt_ptr { uint16_t limit; uint32_t base; } __attribute__((packed)) idt_ptr_t;
@@ -22,6 +23,6 @@ void idt_init(void){idt_entry_t z={0};for(unsigned int i=0;i<256;i++)idt[i]=z;vo
 void register_irq_handler(uint8_t irq,irq_handler_t h){if(irq<16)irq_handlers[irq]=h;}
 void pic_unmask(uint8_t irq){if(irq<8){uint8_t m;__asm__ volatile("inb %1,%0":"=a"(m):"Nd"((uint16_t)0x21));m&=(uint8_t)~(1u<<irq);outb(0x21,m);}else{uint8_t m;__asm__ volatile("inb %1,%0":"=a"(m):"Nd"((uint16_t)0xa1));m&=(uint8_t)~(1u<<(irq-8));outb(0xa1,m);pic_unmask(2);}}
 void interrupts_enable(void){__asm__ volatile("sti");}
-void isr_handler(registers_t*r){if(r->int_no<32){serial_write("exception: "); serial_write(exception_names[r->int_no]); serial_write("\n"); if(r->int_no==14){vmm_page_fault(r->err_code,0);return;} panic("CPU exception");}}
+void isr_handler(registers_t*r){if(r->int_no<32){serial_write("exception: "); serial_write(exception_names[r->int_no]); kprintf(" vector=%u eip=0x%x cs=0x%x err=0x%x\n",r->int_no,r->eip,r->cs,r->err_code); if(r->int_no==14){vmm_page_fault(r->err_code,0);return;} panic("CPU exception");}}
 void irq_handler(registers_t*r){uint8_t irq=(uint8_t)(r->int_no-32);if(irq<16&&irq_handlers[irq])irq_handlers[irq](r);if(irq>=8)outb(0xa0,0x20);outb(0x20,0x20);}
-void interrupt_dispatch(registers_t*r){if(r->int_no<32)isr_handler(r);else if(r->int_no<48)irq_handler(r);else if(r->int_no==128)syscall_from_interrupt(r);}
+registers_t*interrupt_dispatch(registers_t*r){if(r->int_no<32)isr_handler(r);else if(r->int_no==32){irq_handler(r);return scheduler_timer_tick(r);}else if(r->int_no<48)irq_handler(r);else if(r->int_no==128)return syscall_from_interrupt(r);return r;}
