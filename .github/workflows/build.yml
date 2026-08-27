@@ -7,6 +7,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install toolchain
         run: sudo apt-get update && sudo apt-get install -y gcc-i686-linux-gnu binutils-i686-linux-gnu nasm grub-pc-bin grub-common xorriso qemu-system-x86 dosfstools mtools
+      - name: Verify image-tool dependencies
+        run: command -v mformat && mformat -V
       - name: Build
         run: make
       - name: Validate Multiboot2

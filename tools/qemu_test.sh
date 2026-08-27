@@ -22,6 +22,7 @@ assert_serial() {
   local serial="$1"
   grep -q 'vmm: clone self-test passed' "$serial"
   grep -q -E 'acpi: (RSDP found|RSDP not found)' "$serial"
+  grep -q 'smp: BSP online, CPUID APIC' "$serial"
   grep -q 'pci: bus0 enumeration found' "$serial"
   grep -q 'dma: 32-bit contiguous allocator ready' "$serial"
   grep -q 'vmm: COW self-test passed' "$serial"
