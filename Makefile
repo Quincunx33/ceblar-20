@@ -14,7 +14,7 @@ C_OBJS := $(patsubst %.c,$(BUILD_DIR)/c/%.o,$(C_SRCS))
 S_SRCS := $(shell find arch -name '*.S')
 S_OBJS := $(patsubst %.S,$(BUILD_DIR)/s/%.o,$(S_SRCS))
 
-.PHONY: all iso run check clean help debug size tags test
+.PHONY: all iso run check clean help debug size tags test test-smp
 all: iso
 
 $(BUILD_DIR)/c/%.o: %.c
@@ -58,6 +58,8 @@ tags:
 
 test: iso
 	@tools/qemu_test.sh
+test-smp: iso
+	@tools/qemu_smp_test.sh
 
 help:
-	@printf '%s\n' 'Targets: all, iso, run, check, clean, debug, size, tags, test'
+	@printf '%s\n' 'Targets: all, iso, run, check, clean, debug, size, tags, test, test-smp'
