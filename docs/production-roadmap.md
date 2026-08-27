@@ -6,18 +6,18 @@ The target is a maintainable, secure, multi-process 32-bit x86 operating-system 
 
 ## Current baseline
 
-The kernel boots through GRUB Multiboot2, initializes GDT/TSS/IDT/PIC, discovers legacy ACPI RSDP and PCI bus-0 functions, manages physical pages with reference counts, maps isolated address spaces, resolves COW write faults, and provides interrupt-safe PMM and heap locks. IRQ0 frame-aware preemption, ATA PIO, FAT32 reads, VFS descriptors, ring-3 ELF loading, `fork`, `wait`, `exec`, range `mmap`/`munmap`, and a loopback IPv4/UDP foundation are present. QEMU tests cover both an ISO-only boot and an attached FAT32 disk with a ring-3 ELF payload.
+The kernel boots through GRUB Multiboot2, initializes GDT/TSS/IDT/PIC, discovers legacy ACPI RSDP and PCI bus-0 functions, manages physical pages with reference counts, maps isolated address spaces, resolves COW write faults, and provides interrupt-safe PMM and heap locks. IRQ0 frame-aware preemption, bootstrap per-CPU state, address-space reference counting, a shared-address-space kernel-thread constructor, ATA PIO, FAT32 reads, VFS descriptors, ring-3 ELF loading, `fork`, `wait`, `exec`, range `mmap`/`munmap`, and a loopback IPv4/UDP foundation are present. Futex wait now validates and compares the userspace word before blocking, with a deterministic boot self-test covering mismatch and equal-value paths. QEMU tests cover both an ISO-only boot and an attached FAT32 disk with a ring-3 ELF payload.
 
 ## Milestones
 
 | Milestone | Primary deliverables | Quality gate | Status |
 |---|---|---|---|
 | M1 core safety | Locking policy, allocator validation, VMA metadata, page reclamation, syscall ABI review | Strict build, fault-injection tests, long QEMU run | Foundation implemented; stress and fault-injection work remains |
-| M2 process platform | Reusable PID table, threads, signals, futex-like synchronization, robust wait/reap | Parent/child stress suite and race-oriented tests | In progress; COW, wait, exit-status, and descriptor hooks exist |
-| M3 SMP and hardware | APIC/IOAPIC, per-CPU state, SMP startup, PCI BARs, ACPI MADT, DMA-safe buffers | `-smp 2/4` QEMU and hardware matrix | PCI/ACPI discovery and DMA foundation implemented; SMP/APIC remains |
+| M2 process platform | Reusable PID table, threads, signals, futex-like synchronization, robust wait/reap | Parent/child stress suite and race-oriented tests | In progress; futex compare-before-block and a shared-address-space kernel-thread API are implemented with a deterministic self-test, but PID reuse, full thread lifecycle, signal delivery, and stress coverage remain |
+| M3 SMP and hardware | APIC/IOAPIC, per-CPU state, SMP startup, PCI BARs, ACPI MADT, DMA-safe buffers | `-smp 2/4` QEMU and hardware matrix | Local APIC/IOAPIC discovery foundations and bootstrap per-CPU state are implemented; BSP-only execution, MADT parsing, AP startup, active routing, and PCI BAR drivers remain |
 | M4 storage | Virtio/AHCI/NVMe, buffered I/O, journaled filesystem, permissions, crash recovery | Power-loss simulation and filesystem consistency tests | ATA/FAT32 baseline exists; production storage remains |
 | M5 networking | Virtio-net/e1000, Ethernet RX/TX, ARP, IPv4/IPv6, UDP/TCP, sockets | Packet tests, network namespace tests, fuzzing | Loopback protocol foundation exists; hardware networking remains |
-| M6 security | NX/W^X where supported, ASLR, capability/credential model, module policy, audit logging | Negative syscall tests, fuzzing, privilege-boundary review | Basic pointer and ownership hardening exists; security platform remains |
+| M6 security | NX/W^X where supported, ASLR, capability/credential model, module policy, audit logging | Negative syscall tests, fuzzing, privilege-boundary review | User-pointer validation and basic ownership hardening exist; signal masks are represented and SIGKILL-equivalent termination is implemented, but user signal delivery and the security platform remain |
 | M7 userland | libc, init/service manager, shell, utilities, package/update system, installer | Reproducible image and end-to-end user workflows | Syscall wrappers and diagnostic shell exist; full userland remains |
 | M8 release | CI, static analysis, fuzzing, stress, crash reports, signed artifacts, recovery path | Reproducible release and documented support policy | CI regression and artifact upload configured; release hardening remains |
 

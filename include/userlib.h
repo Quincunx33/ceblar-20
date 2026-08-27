@@ -16,7 +16,7 @@ int32_t u_exec(const char *path);
 void *u_mmap(void *address, uint32_t length, uint32_t flags);
 int32_t u_uname(char *buffer);
 int32_t u_kill(int32_t pid,uint32_t signal);
-int32_t u_futex_wait(uint32_t *word);
+int32_t u_futex_wait(uint32_t *word,uint32_t expected);
 int32_t u_futex_wake(uint32_t *word,uint32_t count);
 int32_t u_munmap(void *address, uint32_t length);
 

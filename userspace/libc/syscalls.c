@@ -18,5 +18,5 @@ void*u_mmap(void*address,uint32_t length,uint32_t flags){return(void*)call3(SYS_
 int32_t u_uname(char*buffer){return call3(SYS_UNAME,(uint32_t)buffer,0,0);}
 int32_t u_munmap(void*address,uint32_t length){return call3(SYS_MUNMAP,(uint32_t)address,length,0);}
 int32_t u_kill(int32_t pid,uint32_t signal){return call3(SYS_KILL,(uint32_t)pid,signal,0);}
-int32_t u_futex_wait(uint32_t*word){return call3(SYS_FUTEX_WAIT,(uint32_t)word,0,0);}
+int32_t u_futex_wait(uint32_t*word,uint32_t expected){return call3(SYS_FUTEX_WAIT,(uint32_t)word,expected,0);}
 int32_t u_futex_wake(uint32_t*word,uint32_t count){return call3(SYS_FUTEX_WAKE,(uint32_t)word,count,0);}
