@@ -9,7 +9,7 @@ GRUB_MKRESCUE := grub-mkrescue
 QEMU := qemu-system-i386
 CFLAGS := -std=gnu11 -ffreestanding -fno-stack-protector -fno-pie -fno-asynchronous-unwind-tables -Wall -Wextra -Werror -m32 -Iinclude
 LDFLAGS := -m elf_i386 -T arch/x86/linker.ld
-C_SRCS := $(shell find kernel arch drivers mm modules scheduler fs userspace -name '*.c')
+C_SRCS := $(shell find kernel arch drivers mm modules scheduler fs userspace net -name '*.c')
 C_OBJS := $(patsubst %.c,$(BUILD_DIR)/c/%.o,$(C_SRCS))
 S_SRCS := $(shell find arch -name '*.S')
 S_OBJS := $(patsubst %.S,$(BUILD_DIR)/s/%.o,$(S_SRCS))
@@ -54,7 +54,7 @@ size: $(BUILD_DIR)/kernel.elf
 	@i686-linux-gnu-size $(BUILD_DIR)/kernel.elf
 
 tags:
-	@command -v ctags >/dev/null && ctags -R kernel arch mm drivers fs modules scheduler include || printf '%s\n' 'ctags not installed'
+	@command -v ctags >/dev/null && ctags -R kernel arch mm drivers fs modules scheduler net include || printf '%s\n' 'ctags not installed'
 
 test: iso
 	@tools/qemu_test.sh

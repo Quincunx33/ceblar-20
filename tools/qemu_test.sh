@@ -21,6 +21,8 @@ run_qemu() {
 assert_serial() {
   local serial="$1"
   grep -q 'vmm: clone self-test passed' "$serial"
+  grep -q 'vmm: COW self-test passed' "$serial"
+  grep -q 'net: IPv4/UDP foundation ready' "$serial"
   grep -q 'module: example loaded' "$serial"
   grep -q 'userspace: launching ring3 init' "$serial"
   grep -q 'user: hello' "$serial"
@@ -36,5 +38,7 @@ if command -v mkfs.fat >/dev/null 2>&1 && command -v mcopy >/dev/null 2>&1; then
   grep -q 'ata: primary master ready' /tmp/ceblar-20-qemu-disk-serial.log
   grep -q 'fat32: mounted' /tmp/ceblar-20-qemu-disk-serial.log
   grep -q 'fat32: HELLO.TXT read ok' /tmp/ceblar-20-qemu-disk-serial.log
+  grep -q 'exec: disk ELF queued' /tmp/ceblar-20-qemu-disk-serial.log
+  grep -q 'disk: hello' /tmp/ceblar-20-qemu-disk-serial.log
   grep -q 'user: hello' /tmp/ceblar-20-qemu-disk-serial.log
 fi
