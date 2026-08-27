@@ -1,0 +1,8 @@
+build/
+*.iso
+*.elf
+*.zip
+*.log
+__pycache__/
+*.pyc
+.DS_Store

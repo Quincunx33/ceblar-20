@@ -1,0 +1,13 @@
+name: build
+on: [push, pull_request]
+jobs:
+  kernel:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install toolchain
+        run: sudo apt-get update && sudo apt-get install -y gcc-i686-linux-gnu binutils-i686-linux-gnu nasm grub-pc-bin grub-common xorriso qemu-system-x86
+      - name: Build
+        run: make
+      - name: Validate Multiboot2
+        run: grub-file --is-x86-multiboot2 build/kernel.elf

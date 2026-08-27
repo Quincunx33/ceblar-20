@@ -1,0 +1,6 @@
+#include <stdint.h>
+#include <stdarg.h>
+#include "drivers.h"
+#include "kernel.h"
+static void out_u(uint32_t n,uint32_t base,uint32_t width){char b[16];uint32_t i=0;do{uint32_t d=n%base;b[i++]=(char)(d<10?'0'+d:'a'+d-10);n/=base;}while(n);while(i<width)b[i++]='0';while(i){char c=b[--i];vga_putc(c);serial_write_n(&c,1);}}
+void kprintf(const char*fmt,...){va_list ap;va_start(ap,fmt);for(;*fmt;fmt++){if(*fmt!='%'){vga_putc(*fmt);serial_write_n(fmt,1);continue;}fmt++;uint32_t width=0;if(*fmt=='0'){fmt++;while(*fmt>='0'&&*fmt<='9'){width=width*10u+(uint32_t)(*fmt-'0');fmt++;}}if(*fmt=='%'){vga_putc('%');serial_write_n("%",1);}else if(*fmt=='s'){const char*s=va_arg(ap,const char*);vga_write(s);serial_write(s);}else if(*fmt=='c'){char c=(char)va_arg(ap,int);vga_putc(c);serial_write_n(&c,1);}else if(*fmt=='d'||*fmt=='i'){int32_t n=va_arg(ap,int32_t);if(n<0){vga_putc('-');serial_write_n("-",1);n=-n;}out_u((uint32_t)n,10,width);}else if(*fmt=='u')out_u(va_arg(ap,uint32_t),10,width);else if(*fmt=='x')out_u(va_arg(ap,uint32_t),16,width);else if(*fmt=='p'){vga_write("0x");serial_write("0x");out_u((uint32_t)va_arg(ap,void*),16,8);}else if(*fmt=='l'){fmt++;if(*fmt=='u')out_u(va_arg(ap,uint32_t),10,width);else if(*fmt=='d')out_u((uint32_t)va_arg(ap,int32_t),10,width);}}va_end(ap);}
