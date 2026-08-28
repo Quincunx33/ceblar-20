@@ -3,5 +3,5 @@
 #include <stdint.h>
 void virtio_blk_init(void);
 int virtio_blk_present(void);
-int virtio_blk_read_sector(uint32_t lba,void*buffer);
+int virtio_blk_read_sector(uint32_t lba,void*buffer);int virtio_blk_write_sector(uint32_t lba,const void*buffer);
 #endif
