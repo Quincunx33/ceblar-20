@@ -14,7 +14,7 @@ C_OBJS := $(patsubst %.c,$(BUILD_DIR)/c/%.o,$(C_SRCS))
 S_SRCS := $(shell find arch -name '*.S')
 S_OBJS := $(patsubst %.S,$(BUILD_DIR)/s/%.o,$(S_SRCS))
 
-.PHONY: all iso run check clean help debug size tags test test-smp test-virtio
+.PHONY: all iso run check clean help debug size tags test test-smp test-virtio static-check
 all: iso
 
 $(BUILD_DIR)/c/%.o: %.c
@@ -64,5 +64,8 @@ test-smp: iso
 test-virtio: iso
 	@tools/qemu_virtio_test.sh
 
+static-check:
+	@tools/static_check.sh
+
 help:
-	@printf '%s\n' 'Targets: all, iso, run, check, clean, debug, size, tags, test, test-smp, test-virtio'
+	@printf '%s\n' 'Targets: all, iso, run, check, clean, debug, size, tags, test, test-smp, test-virtio, static-check'
