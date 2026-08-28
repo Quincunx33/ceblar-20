@@ -21,5 +21,6 @@ int32_t u_futex_wait(uint32_t *word,uint32_t expected);int32_t u_futex_wait_time
 int32_t u_futex_wake(uint32_t *word,uint32_t count);
 int32_t u_munmap(void *address, uint32_t length);
 int32_t u_getcred(credentials_t *credentials);
+int32_t u_socket(uint16_t local_port);int32_t u_connect(int socket,uint16_t remote_port);int32_t u_send(int socket,const void*data,uint32_t length);int32_t u_socket_close(int socket);
 
 #endif
