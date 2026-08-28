@@ -1,6 +1,7 @@
 #ifndef CEBLAR_USERLIB_H
 #define CEBLAR_USERLIB_H
 #include <stdint.h>
+#include "scheduler.h"
 
 int32_t u_read(int fd, void *buffer, uint32_t length);
 int32_t u_write(int fd, const void *buffer, uint32_t length);
@@ -19,5 +20,6 @@ int32_t u_kill(int32_t pid,uint32_t signal);int32_t u_sigaction(uint32_t signal,
 int32_t u_futex_wait(uint32_t *word,uint32_t expected);int32_t u_futex_wait_timeout(uint32_t *word,uint32_t expected,uint32_t timeout_ms);
 int32_t u_futex_wake(uint32_t *word,uint32_t count);
 int32_t u_munmap(void *address, uint32_t length);
+int32_t u_getcred(credentials_t *credentials);
 
 #endif
