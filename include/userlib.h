@@ -15,7 +15,7 @@ int32_t u_wait(int32_t pid, int32_t *status);
 int32_t u_exec(const char *path);
 void *u_mmap(void *address, uint32_t length, uint32_t flags);
 int32_t u_uname(char *buffer);
-int32_t u_kill(int32_t pid,uint32_t signal);
+int32_t u_kill(int32_t pid,uint32_t signal);int32_t u_sigaction(uint32_t signal,uint32_t handler,uint32_t mask);int32_t u_sigreturn(void);
 int32_t u_futex_wait(uint32_t *word,uint32_t expected);
 int32_t u_futex_wake(uint32_t *word,uint32_t count);
 int32_t u_munmap(void *address, uint32_t length);
