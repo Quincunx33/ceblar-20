@@ -17,6 +17,8 @@ jobs:
         run: make test
       - name: Run SMP baseline
         run: make test-smp
+      - name: Run Virtio-blk smoke test
+        run: make test-virtio
       - name: Upload ISO
         uses: actions/upload-artifact@v4
         with:
